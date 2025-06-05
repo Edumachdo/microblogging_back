@@ -9,9 +9,30 @@ class Postagem {
     this.dataPostagem = dataPostagem;
   }
 
-  async inserir() {
+  validar() {
     try {
-      const { db, client } = await connect();
+      if (!this.idUsuario) {
+        throw new Error("idUsuario é obrigatório");
+      }
+      if (!this.texto || this.texto.trim() === "") {
+        throw new Error("Texto é obrigatório");
+      }
+      if (!this.dataPostagem) {
+        throw new Error("Data da postagem é obrigatória");
+      }
+    } catch (error) {
+      Logger.log("Erro de validação: " + error.message);
+      throw error;
+    }
+  }
+
+  async inserir() {
+    let client;
+    try {
+      this.validar();
+      const connection = await connect();
+      client = connection.client;
+      const db = connection.db;
       const result = await db.collection("postagens").insertOne({
         id: this.id,
         idUsuario: this.idUsuario,
@@ -19,9 +40,12 @@ class Postagem {
         dataPostagem: this.dataPostagem,
       });
       console.log("Postagem inserida:", result.insertedId);
-      client.close();
     } catch (error) {
       Logger.log("Erro ao inserir postagem: " + error);
+    } finally {
+      if (client) {
+        client.close();
+      }
     }
   }
 

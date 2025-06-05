@@ -8,18 +8,39 @@ class Seguidor {
     this.idSeguido = idSeguido;
   }
 
-  async inserir() {
+  validar() {
     try {
-      const { db, client } = await connect();
+      if (!this.idUsuario) {
+        throw new Error("idUsuario é obrigatório");
+      }
+      if (!this.idSeguido) {
+        throw new Error("idSeguido é obrigatório");
+      }
+    } catch (error) {
+      Logger.log("Erro de validação: " + error.message);
+      throw error;
+    }
+  }
+
+  async inserir() {
+    let client;
+    try {
+      this.validar();
+      const connection = await connect();
+      client = connection.client;
+      const db = connection.db;
       const result = await db.collection("seguidores").insertOne({
         id: this.id,
         idUsuario: this.idUsuario,
         idSeguido: this.idSeguido,
       });
       console.log("Seguidor inserido:", result.insertedId);
-      client.close();
     } catch (error) {
       Logger.log("Erro ao inserir seguidor: " + error);
+    } finally {
+      if (client) {
+        client.close();
+      }
     }
   }
 

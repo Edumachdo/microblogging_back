@@ -10,9 +10,33 @@ class Comentario {
     this.dataComentario = dataComentario;
   }
 
-  async inserir() {
+  validar() {
     try {
-      const { db, client } = await connect();
+      if (!this.idPostagem) {
+        throw new Error("idPostagem é obrigatório");
+      }
+      if (!this.idUsuario) {
+        throw new Error("idUsuario é obrigatório");
+      }
+      if (!this.texto || this.texto.trim() === "") {
+        throw new Error("Texto é obrigatório");
+      }
+      if (!this.dataComentario) {
+        throw new Error("Data do comentário é obrigatória");
+      }
+    } catch (error) {
+      Logger.log("Erro de validação: " + error.message);
+      throw error;
+    }
+  }
+
+  async inserir() {
+    let client;
+    try {
+      this.validar();
+      const connection = await connect();
+      client = connection.client;
+      const db = connection.db;
       const result = await db.collection("comentarios").insertOne({
         id: this.id,
         idPostagem: this.idPostagem,
@@ -21,9 +45,12 @@ class Comentario {
         dataComentario: this.dataComentario,
       });
       console.log("Comentário inserido:", result.insertedId);
-      client.close();
     } catch (error) {
       Logger.log("Erro ao inserir comentário: " + error);
+    } finally {
+      if (client) {
+        client.close();
+      }
     }
   }
 

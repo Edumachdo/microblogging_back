@@ -10,9 +10,30 @@ class Usuario {
     this.dataCriacao = dataCriacao;
   }
 
-  async inserir() {
+  validar() {
     try {
-      const { db, client } = await connect();
+      if (!this.nome || this.nome.trim() === "") {
+        throw new Error("Nome é obrigatório");
+      }
+      if (!this.email || this.email.trim() === "") {
+        throw new Error("Email é obrigatório");
+      }
+      if (!this.senha || this.senha.trim() === "") {
+        throw new Error("Senha é obrigatória");
+      }
+    } catch (error) {
+      Logger.log("Erro de validação: " + error.message);
+      throw error;
+    }
+  }
+
+  async inserir() {
+    let client;
+    try {
+      this.validar();
+      const connection = await connect();
+      client = connection.client;
+      const db = connection.db;
       const result = await db.collection("usuarios").insertOne({
         id: this.id,
         nome: this.nome,
@@ -21,9 +42,12 @@ class Usuario {
         dataCriacao: this.dataCriacao,
       });
       console.log("Usuário inserido:", result.insertedId);
-      client.close();
     } catch (error) {
       Logger.log("Erro ao inserir usuário: " + error);
+    } finally {
+      if (client) {
+        client.close();
+      }
     }
   }
 
