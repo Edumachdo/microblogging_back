@@ -27,6 +27,7 @@ async function testarInsercao() {
     new Date()
   );
   await c1.inserir();
+  console.log("Testar Inserir concluído");
 }
 
 async function testarAtualizar() {
@@ -64,9 +65,9 @@ async function testarDeletar() {
 
 async function main() {
   await testarInsercao();
-  await testarAtualizar();
-  await testarBuscar();
-  await testarDeletar();
+  // await testarAtualizar();
+  // await testarBuscar();
+  // await testarDeletar();
 }
 
 main();
